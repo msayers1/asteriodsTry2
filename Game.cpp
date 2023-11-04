@@ -9,5 +9,5 @@
 Game::Game()
     :score_(0),
     lives_(3),
-    time_(10000)
+    shipStructuralIntegrity_(100)
 {}

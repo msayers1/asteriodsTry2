@@ -7,7 +7,7 @@
 class Game {
     private:
         int score_, lives_;
-        float time_;
+        float shipStructuralIntegrity_;
     public:
         Game();
 		
@@ -27,7 +27,7 @@ class Game {
 		inline void increaseScore(int points)
 		{
 			score_ = score_ + points;
-            if(score_ % 10000 == 0){
+            if(score_ % 1000 == 0){
                 setLives(1);
             }
 		}
@@ -41,24 +41,14 @@ class Game {
 			lives_ = lives_ + liveAdjustment;
 		}
 
-		inline void loseLife()
+        inline float getShipStructuralIntegrity() const
 		{
-			lives_ = lives_ - 1;
-		}
-
-		inline void gainLife()
-		{
-			lives_ = lives_ + 1;
-		}
-
-        inline float getTime() const
-		{
-			return time_;
+			return shipStructuralIntegrity_;
 		}
 		
-		inline void setTime(int dt)
+		inline void setShipStructuralIntegrity(int damage)
 		{
-			time_ = time_ - dt;
+			shipStructuralIntegrity_ = shipStructuralIntegrity_ - damage;
 		}
 
 };

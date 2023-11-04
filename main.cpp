@@ -51,14 +51,12 @@
 #include "Game.h"
 #include "Ellipse.h"
 #include "Rectangle.h"
-#include "Log.h"
-#include "Turtle.h"
+#include "Ship.h"
+#include "Missile.h"
 // #include "Face.h"
 // #include "SmilingFace.h"
 // #include "AnimatedEllipse.h"
 // #include "AnimatedRectangle.h"
-#include "StaticBackground.h"
-#include "Frogger.h"
 
 using namespace std;
 using namespace earshooter;
@@ -123,9 +121,7 @@ enum AppMode {
 #endif
 //--------------------------------------
 void initWorld();
-void setupBackground();
-void setupFrogger();
-void checkFrog();
+void setupShip();
 void printMatrix(const GLfloat* m);
 void displayTextualInfo(const string& infoStr, int textRow);
 void displayTextualInfo(const char* infoStr, int textRow);
@@ -249,11 +245,9 @@ const GLfloat* bgndColor = BGND_COLOR[0];
 // list<shared_ptr<AnimatedObject> > animatedObjectList;
 std::vector<std::pair<shared_ptr<ComplexGraphicObject>,shared_ptr<AnimatedObject>>> ObjectList;
 
-std::vector<shared_ptr<GraphicObject>> WaterObjectList;
 
-std::vector<shared_ptr<ComplexGraphicObject>> RoadObjectList;
-
-WorldType World::worldType = WorldType::CYLINDER_WORLD;
+WorldType World::worldType = WorldType::TORUS_WORLD;
+// WorldType World::worldType = WorldType::CYLINDER_WORLD;
 AppMode appMode = AppMode::CREATION_MODE;
 
 //	reference frames (using 'f' key);
@@ -266,79 +260,6 @@ bool World::showReferenceFrames = false;
 #endif
 //--------------------------------------
 
-void setupBackground()
-{
-	// printf("setupShip\n");
-	float logPosition;
-	std::shared_ptr<StaticBackground> staticBackground = make_shared<StaticBackground>();
-	ObjectList.push_back(make_pair(staticBackground, staticBackground));
-	std::shared_ptr<Log> log = make_shared<Log>(SMALL, SLOW, -16, 0);//addPart(std::make_shared<Log>(SMALL, SLOW, 8, 12));
-	WaterObjectList.push_back(log);
-	ObjectList.push_back(make_pair(log, log));
-	// log = make_shared<Log>(LARGE, SLOW, -6, 0);//addPart(std::make_shared<Log>(SMALL, SLOW, 8, 12));
-	// WaterObjectList.push_back(log);
-	// ObjectList.push_back(make_pair(log, log));
-	// log = make_shared<Log>(MEDIUM, SLOW, 6, 0);//addPart(std::make_shared<Log>(SMALL, SLOW, 8, 12));
-	// WaterObjectList.push_back(log);
-	// ObjectList.push_back(make_pair(log, log));
-	// log = make_shared<Log>(MEDIUM, SLOW, 16, 0);//addPart(std::make_shared<Log>(SMALL, SLOW, 8, 12));
-	// WaterObjectList.push_back(log);
-	// ObjectList.push_back(make_pair(log, log));
-	std::shared_ptr<Turtle> turtle = make_shared<Turtle>(ONE, TURTLE_BACK_MODERATE, -18, 2);//addPart(std::make_shared<Log>(SMALL, SLOW, 8, 12));
-	// WaterObjectList.push_back(turtle);
-	// ObjectList.push_back(make_pair(turtle, turtle));
-	// turtle = make_shared<Turtle>(ONE, TURTLE_BACK_MODERATE, -10, 2);//addPart(std::make_shared<Log>(SMALL, SLOW, 8, 12));
-	// WaterObjectList.push_back(turtle);
-	// ObjectList.push_back(make_pair(turtle, turtle));
-	// turtle = make_shared<Turtle>(ONE, TURTLE_BACK_MODERATE, -2, 2);//addPart(std::make_shared<Log>(SMALL, SLOW, 8, 12));
-	// WaterObjectList.push_back(turtle);
-	// ObjectList.push_back(make_pair(turtle, turtle));
-	turtle = make_shared<Turtle>(ONE, TURTLE_BACK_MODERATE, 6, 2);//addPart(std::make_shared<Log>(SMALL, SLOW, 8, 12));
-	WaterObjectList.push_back(turtle);
-	ObjectList.push_back(make_pair(turtle, turtle));
-	// turtle = make_shared<Turtle>(ONE, TURTLE_BACK_MODERATE, 14, 2);//addPart(std::make_shared<Log>(SMALL, SLOW, 8, 12));
-	// WaterObjectList.push_back(turtle);
-	// ObjectList.push_back(make_pair(turtle, turtle));
-	// log = make_shared<Log>(LARGE, FAST, -16, 4);//addPart(std::make_shared<Log>(SMALL, SLOW, 8, 12));
-	// WaterObjectList.push_back(log);
-	// ObjectList.push_back(make_pair(log, log));
-	// log = make_shared<Log>(LARGE, FAST, -4, 4);//addPart(std::make_shared<Log>(SMALL, SLOW, 8, 12));
-	// WaterObjectList.push_back(log);
-	// ObjectList.push_back(make_pair(log, log));
-	log = make_shared<Log>(SMALL, FAST, 6, 4);//addPart(std::make_shared<Log>(SMALL, SLOW, 8, 12));
-	WaterObjectList.push_back(log);
-	ObjectList.push_back(make_pair(log, log));
-	log = make_shared<Log>(SMALL, FAST, 14, 4);//addPart(std::make_shared<Log>(SMALL, SLOW, 8, 12));
-	WaterObjectList.push_back(log);
-	ObjectList.push_back(make_pair(log, log));
-	logPosition = -8;
-	for(int i = 0; i < 2; i++){
-		turtle = make_shared<Turtle>(THREE, TURTLE_MODERATE, logPosition, 8);//addPart(std::make_shared<Log>(SMALL, SLOW, 8, 12));
-		WaterObjectList.push_back(turtle);
-		ObjectList.push_back(make_pair(turtle, turtle));
-		logPosition = logPosition + 20;
-	}
-	logPosition = -15;	
-	for(int i = 0; i < 5; i++){
-		log = make_shared<Log>(MEDIUM, BACK_SLOW, logPosition, 6);//addPart(std::make_shared<Log>(SMALL, SLOW, 8, 12));
-				WaterObjectList.push_back(log);
-		ObjectList.push_back(make_pair(log, log));
-		logPosition = logPosition + 10;
-	}
-	logPosition = -20;
-	for(int i = 0; i < 6; i++){
-		log = make_shared<Log>(SMALL, BACK_FAST, logPosition, 10);//addPart(std::make_shared<Log>(SMALL, SLOW, 8, 12));
-			WaterObjectList.push_back(log);
-		ObjectList.push_back(make_pair(log, log));
-		logPosition = logPosition + 6;
-	}
-}
-void setupFrogger()
-{
-	// printf("setupShip\n");
-	std::shared_ptr<Frogger> frogger = make_shared<Frogger>();
-	ObjectList.push_back(make_pair(frogger, nullptr));
-}
 
 void myDisplayFunc(void)
 {
@@ -458,15 +379,12 @@ void myDisplayFunc(void)
 		char statusLine[256];
 		
 		WorldPoint mouse = pixelToWorld(lastX, lastY);
-		sprintf(statusLine, "Runtime: %d s | Mouse last seen at (%f, %f) |  frogStatus: %s |  Score: %f   |  Number of Lives: %f | Time Left: %f | Frogger Loc: (%f, %f) ",
+		sprintf(statusLine, "Runtime: %d s | Mouse last seen at (%f, %f) |    Score: %f   |  Number of Lives: %f | structural Integrity: %f |  ",
 								static_cast<int>(time(nullptr)-startTime),
 								mouse.x, mouse.y,
-								frogStatus.c_str(),
 								newGame.getScore(), 
 								newGame.getLives(),
-								newGame.getTime(),
-								ObjectList[FroggerIndex].first->getX(),
-								ObjectList[FroggerIndex].first->getY());
+								newGame.getShipStructuralIntegrity());
 		// sprintf(statusLine, "Runtime: %d s   |   Number of objects: %d   |   Mouse last seen at (%d, %d)",
 		// 						static_cast<int>(time(nullptr)-startTime),
 		// 						static_cast<int>(ObjectList.size()),
@@ -772,7 +690,33 @@ void myKeyHandler(unsigned char c, int x, int y)
 		case 'b':
 			displayBgnd = !displayBgnd;
 			break;
+
+			// Left Spin
+		if (c == 'a'){
+			// std::cout << "I pressed a and my spin is" << ObjectList[0].second->getSpin() << std::endl;
+			ObjectList[0].second->setSpin((ObjectList[0].second->getSpin() + 1));
+			// std::cout << "After I pressed a and my spin is" << ObjectList[0].second->getSpin() << std::endl;
+			
+		}
+		// Right Spin
+		if (c == 'd')
+			ObjectList[0].second->setSpin((ObjectList[0].second->getSpin() - 1));
 		
+		// Thrust
+		if (c == 'w')
+			ObjectList[0].second->setVelocityWithGraphicObjectAngle((ObjectList[0].second->getVelocity() + .1));
+		
+		// Fire
+		if (c == ' '){
+			cout << "fire!" << ObjectList[0].first->getX()  << " | " << ObjectList[0].first->getY()  << ObjectList[0].first->getAngle() << std::endl;
+			std::shared_ptr<Missile> missile = make_shared<Missile>(ObjectList[0].first->getX(), ObjectList[0].first->getY(), (ObjectList[0].second->getVelocity() + 3), (ObjectList[0].second->getAngle()+90));
+			// std::shared_ptr<Missile> missile = make_shared<Missile>((ObjectList[0].first->getAngle()+90));
+			//std::shared_ptr<Missile> missile = make_shared<Missile>();
+			ObjectList.push_back(make_pair(missile,missile));
+		}
+			
+
+
 		// case 'c':
 		// 	if (appMode == AppMode::CREATION_MODE)
 		// 		appMode = AppMode::TEST_MODE;
@@ -809,27 +753,15 @@ void mySpecialKeyHandler(int key, int x, int y)
 	// key code, an int rather than an unsigned char).
 	switch(key){
 		case GLUT_KEY_UP:
-			ObjectList[FroggerIndex].first->setY(ObjectList[FroggerIndex].first->getY() + 2);
-			checkFrog();
+			ObjectList[0].second->setVelocityWithGraphicObjectAngle((ObjectList[0].second->getVelocity() + .1));
 			// cout << "Up" << endl;
 			break;
-		case GLUT_KEY_DOWN:
-			ObjectList[FroggerIndex].first->setY(ObjectList[FroggerIndex].first->getY() - 2);
-			checkFrog();
-			// cout << "Down" << endl;
-			break;
 		case GLUT_KEY_LEFT:
-			ObjectList[FroggerIndex].first->setX(ObjectList[FroggerIndex].first->getX() - 1);
-			checkFrog();
-			if(ObjectList[FroggerIndex].first->getX() <= -20)
-				ObjectList[FroggerIndex].first->setX(-19);
+			ObjectList[0].second->setSpin((ObjectList[0].second->getSpin() - 1));
 			// cout << "Left" << endl;			
 			break;
 		case GLUT_KEY_RIGHT:
-			ObjectList[FroggerIndex].first->setX(ObjectList[FroggerIndex].first->getX() + 1);
-			checkFrog();
-			if(20 <= ObjectList[FroggerIndex].first->getX())
-				ObjectList[FroggerIndex].first->setX(19);
+			ObjectList[0].second->setSpin((ObjectList[0].second->getSpin() + 1));
 			// cout << "Right" << endl;
 			break; 
 	}
@@ -1011,55 +943,11 @@ void printMatrix(const GLfloat* m) {
     cout << " (" << m[3] << "\t" << m[7] << "\t" << m[11] << "\t" << m[15] << "))" << endl;
 }
 
-void checkFrog(){
-	float frogY = ObjectList[FroggerIndex].first->getY();
-	float frogX = ObjectList[FroggerIndex].first->getX();
-	bool froggerSafe = false;
-	WorldPoint froggerWorldPoint = {(frogX), (frogY + World::froggerStartHeight)};
- 	std::cout << "Before Check Frog: " << frogStatus << " | " << frogX << "," <<  frogY << " | " << World::froggerStartHeight << " | " << froggerWorldPoint.x << "," <<  froggerWorldPoint.y << " | " << World::roadHeight << " | " << World::bottomTopHedgeHeight << " | " << std::endl;	
-	if(frogY < 0){
-		// std::cout << "First Check Frog: " << FroggerIndex << " | " << frogX << "," <<  frogY << " | " << World::roadHeight << " | " << World::bottomTopHedgeHeight << " | " << std::endl;
-		ObjectList[FroggerIndex].first->setY(0);
-	} else if( 0 < frogY && frogY < (World::roadHeight)){
-		// std::cout << "Second Check Frog: " << (0 < frogY) << " | " << FroggerIndex << " | " << frogX << "," <<  frogY << " | " << World::roadHeight << " | " << World::bottomTopHedgeHeight << " | " << std::endl;
-		//check cars		
-		frogStatus = "Road";
-	} else if((World::bottomTopHedgeHeight) > frogY && frogY > (World::roadHeight)){
-		// std::cout << "Third Check Frog: " << FroggerIndex << " | " << frogX << "," <<  frogY << " | " << World::roadHeight << " | " << World::bottomTopHedgeHeight << " | " << std::endl;
-		// check logs
-		frogStatus = "Water";
-		for (auto obj : WaterObjectList)
-			{
-				if (obj != nullptr)
-					froggerSafe = froggerSafe || obj->isInside(froggerWorldPoint);
-			}
-		if(froggerSafe)
-			frogStatus = "SafeInWater";
-		else {
-			frogStatus = "Dead Water!";
-			newGame.loseLife();
-			ObjectList[FroggerIndex].first->setY(0);
-		}
-	} else if(frogY >= World::bottomTopHedgeHeight) {
-		// std::cout << "Fourth Check Frog: " << FroggerIndex << " | " << frogX << "," <<  frogY << " | " << World::roadHeight << " | " << World::bottomTopHedgeHeight << " | " << std::endl;
-		// check if it scored.
-		int intFrogX = static_cast<int>(frogX + 16);
-		if ((((intFrogX % 8) < 2) || (6 < (intFrogX % 8))) && ((frogX + 20)> 2)){
-			frogStatus = "Score!";
-			//Score Sequence
-			newGame.increaseScore(1000);
-			ObjectList[FroggerIndex].first->setY(0);
-		} else {
-			frogStatus = "Die!";
-			newGame.loseLife();
-			ObjectList[FroggerIndex].first->setY(0);
-		}
-		if (frogY >= (World::bottomTopHedgeHeight + 2))
-			ObjectList[FroggerIndex].first->setY(0);
-	} else {
-		// std::cout << "Last Check Frog: " << FroggerIndex << " | " << frogX << "," <<  frogY << " | " << World::roadHeight << " | " << World::bottomTopHedgeHeight << " | " << std::endl;
-		frogStatus = "Safe.";
-	}
+void setupShip()
+{
+	// printf("setupShip\n");
+	std::shared_ptr<Ship> ship = make_shared<Ship>();
+	ObjectList.push_back(make_pair(ship, ship));
 }
 
 
@@ -1138,18 +1026,14 @@ int main(int argc, char * argv[])
 {
 	// initiate world
 	initWorld();
-
+	setupShip();
 	//	Initialize glut and create a new window
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
 
 	glutInitWindowSize(winWidth, winHeight);
 	glutInitWindowPosition(INIT_WIN_X, INIT_WIN_Y);
-	glutCreateWindow("Frogger");
-	setupBackground();
-	FroggerIndex = ObjectList.size();
-	std::cout << FroggerIndex << std::endl;
-	setupFrogger();
+	glutCreateWindow("Asteriods");
 	//	set up the callbacks
 	glutDisplayFunc(myDisplayFunc);
 	glutReshapeFunc(myResizeFunc);

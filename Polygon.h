@@ -15,6 +15,8 @@
 #include <utility>
 #include <stdio.h>
 #include "GraphicObject.h"
+#include "World.h"
+
 namespace earshooter
 {
     class Polygon : public GraphicObject
@@ -28,7 +30,11 @@ namespace earshooter
             // int _type;
             // float _thickness,_modification;
             
-
+		protected:
+				
+			void updateAbsoluteBox_() const;
+			void draw_() const;
+			
         public:
             Polygon(float centerX, float centerY, float angle, float scaleX, float scaleY,std::vector<std::pair<float,float>> vertexVector,float red, float green, float blue);
             //type will take the points and do stuff with them. 

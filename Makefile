@@ -8,50 +8,33 @@ CC = g++         # compiler
 # vars
 EXEC=main
 #---------------------------------------------------------
-# CLASS=AnimatedEllipse
-#---------------------------------------------------------
-#CLASS2=Shape
 CLASS=AnimatedObject
 #---------------------------------------------------------
-# CLASS3=AnimatedRectangle
-# # CLASS3=Face
-# #---------------------------------------------------------
-#CLASS4=Ellipse
-CLASS2=BoundingBox
+#CLASS2=Shape
+CLASS2=Ellipse
 #---------------------------------------------------------
-#CLASS5=Orangutan
-# CLASS5=Car
-#---------------------------------------------------------
-#CLASS5=Orangutan
 CLASS3=ComplexGraphicObject
+# CLASS3=Face
 #---------------------------------------------------------
-CLASS4=Ellipse
+#CLASS4=Ellipse
+CLASS4=Game
 #---------------------------------------------------------
-CLASS5=Frogger
+#CLASS5=Orangutan
+CLASS5=Polygon
 #---------------------------------------------------------
-CLASS6=Game
+CLASS6=GraphicObject
 #---------------------------------------------------------
-CLASS7=GraphicObject
+CLASS7=Rectangle
 #---------------------------------------------------------
-CLASS8=Log
+CLASS8=Ship
 #---------------------------------------------------------
-# CLASS8=Face
-# #---------------------------------------------------------
-CLASS9=Object
+CLASS9=World
 #---------------------------------------------------------
-CLASS10=Polygon
+CLASS10=Missile
 #---------------------------------------------------------
-CLASS11=Rectangle
+CLASS11=Object
 #---------------------------------------------------------
-CLASS12=StaticBackground
-#---------------------------------------------------------
-# CLASS8=Truck
-#---------------------------------------------------------
-CLASS13=Turtle
-#---------------------------------------------------------
-# CLASS11=SmilingFace
-# #---------------------------------------------------------
-CLASS14=World
+CLASS12=BoundingBox
 #---------------------------------------------------------
 #---------------------------------------------------------
 CPPFLAGS=-I. -lglut -lGLU -lGL -lstdc++ -lm
@@ -61,8 +44,8 @@ CPPFLAGS=-I. -lglut -lGLU -lGL -lstdc++ -lm
 #---------------------------------------------------------
 all: ${EXEC} # execute "make"
 #---------------------------------------------------------
-${EXEC}: ${EXEC}.o ${CLASS}.o ${CLASS2}.o ${CLASS3}.o ${CLASS4}.o  ${CLASS5}.o ${CLASS6}.o ${CLASS7}.o ${CLASS8}.o ${CLASS9}.o ${CLASS10}.o ${CLASS11}.o ${CLASS12}.o ${CLASS13}.o ${CLASS14}.o
-	${CC} ${EXEC}.o ${CLASS}.o ${CLASS2}.o ${CLASS3}.o ${CLASS4}.o ${CLASS5}.o ${CLASS6}.o ${CLASS7}.o ${CLASS8}.o ${CLASS9}.o ${CLASS10}.o ${CLASS11}.o ${CLASS12}.o ${CLASS13}.o ${CLASS14}.o -o ${EXEC} ${CPPFLAGS}
+${EXEC}: ${EXEC}.o ${CLASS}.o ${CLASS2}.o ${CLASS3}.o ${CLASS4}.o  ${CLASS5}.o ${CLASS6}.o ${CLASS7}.o ${CLASS8}.o ${CLASS9}.o ${CLASS10}.o ${CLASS11}.o ${CLASS12}.o ${CLASS13}.o
+	${CC} ${EXEC}.o ${CLASS}.o ${CLASS2}.o ${CLASS3}.o ${CLASS4}.o ${CLASS5}.o ${CLASS6}.o ${CLASS7}.o ${CLASS8}.o ${CLASS9}.o ${CLASS10}.o  ${CLASS11}.o ${CLASS12}.o ${CLASS13}.o -o ${EXEC} ${CPPFLAGS}
 #---------------------------------------------------------
 ${EXEC}.o: ${EXEC}.cpp 
 	${CC} -c ${EXEC}.cpp -o ${EXEC}.o ${CPPFLAGS}
@@ -106,9 +89,6 @@ ${CLASS12}.o: ${CLASS12}.cpp
 ${CLASS13}.o: ${CLASS13}.cpp 
 	${CC} -c ${CLASS13}.cpp -o ${CLASS13}.o ${CPPFLAGS}
 #---------------------------------------------------------
-${CLASS14}.o: ${CLASS14}.cpp 
-	${CC} -c ${CLASS14}.cpp -o ${CLASS14}.o ${CPPFLAGS}
-#---------------------------------------------------------
 clean: # delete object files and executables
-		$(RM) ${EXEC}.o ${EXEC} ${CLASS}.o ${CLASS} ${CLASS2}.o ${CLASS2} ${CLASS3}.o ${CLASS3} ${CLASS4}.o ${CLASS4} ${CLASS5}.o ${CLASS5} ${CLASS6}.o ${CLASS6} ${CLASS7}.o ${CLASS7} ${CLASS8}.o ${CLASS8} ${CLASS9}.o ${CLASS9} ${CLASS10}.o ${CLASS10} ${CLASS11}.o ${CLASS11} ${CLASS12}.o ${CLASS12} ${CLASS13}.o ${CLASS13} ${CLASS14}.o ${CLASS14} 
+	$(RM) ${EXEC}.o ${EXEC} ${CLASS}.o ${CLASS} ${CLASS2}.o ${CLASS2} ${CLASS3}.o ${CLASS3} ${CLASS4}.o ${CLASS4} ${CLASS5}.o ${CLASS5} ${CLASS6}.o ${CLASS6} ${CLASS7}.o ${CLASS7} ${CLASS8}.o ${CLASS8} ${CLASS9}.o ${CLASS9} ${CLASS10}.o ${CLASS10} ${CLASS10}.o ${CLASS11} ${CLASS11}.o ${CLASS12} ${CLASS12}.o ${CLASS13} ${CLASS13}.o 
 #---------------------------------------------------------

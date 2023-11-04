@@ -15,6 +15,7 @@
 #include <iostream>
 #include "glPlatform.h"
 #include "Polygon.h"
+#include "World.h"
 
 using namespace std;
 using namespace earshooter;
@@ -76,10 +77,10 @@ void Polygon::draw() const
 	glPopMatrix();
 }
 
-// Next thing to work on expanding a line to a polygon. 
-// void Polygon::coordinateDraw() const
-// {
-	
+
+bool isInside(const WorldPoint& pt ) {
+	return false;
+}	
 // 	for (int j=0; j<((_vertexVector.size())-1); j++) {
 //         //Math to consider the four corners of the box. 
 //         std::vector<std::pair<float,float>> tempVector;
