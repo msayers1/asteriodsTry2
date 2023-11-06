@@ -8,6 +8,9 @@
 #ifndef ANIMATED_OBJECT_H
 #define ANIMATED_OBJECT_H
 
+#include <stdio.h>
+#include <iostream>
+#include <cmath>
 #include "Object.h"
 
 namespace earshooter
@@ -48,10 +51,11 @@ namespace earshooter
 			// set velocity with speed and angle in radians. 
 			inline void setVelocity(float speed, float angle)
 			{
-				
 				velocity_ = speed;
-				vx_ = speed * cosf(angle);
-				vy_ = speed * sinf(angle);
+				float rad_angle = angle * M_PI/180;
+				vx_ = speed * cosf(rad_angle);
+				vy_ = speed * sinf(rad_angle);
+				// std::cout << speed << " | " << angle << " | " << rad_angle << " | " << cosf(angle) << " | " << sinf(angle) << vx_ << " | " << vy_ << std::endl;
 			}
 
 			// set velocity with speed and angle in radians. 

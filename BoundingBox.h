@@ -137,7 +137,7 @@ namespace earshooter
 			 * @RETURN the box's lower-right corner
 			 */
 			WorldPoint getCornerLR() const;
-			
+
 
 			/**	Checks whether a point is inside the box
 			 * @PARAM x	horizontal coordinate of the point

@@ -8,6 +8,7 @@
 
 Game::Game()
     :score_(0),
-    lives_(3),
-    shipStructuralIntegrity_(100)
+    lives_(1),
+    shipStructuralIntegrity_(100),
+    gameStatus_(true)
 {}

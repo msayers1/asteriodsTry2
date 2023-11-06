@@ -24,6 +24,7 @@ namespace earshooter
         private:
         
             // float _centerX, _centerY, _scaleX, _scaleY, _angle;
+            float width_, height_;
             float _scaleX, _scaleY;
             float _red, _green, _blue;
             std::vector<std::pair<float,float>> _vertexVector;
@@ -43,7 +44,7 @@ namespace earshooter
             ~Polygon();
             
             void draw() const;
-
+			
             //disabled constructors & operators
             
             Polygon() = delete;
@@ -52,6 +53,18 @@ namespace earshooter
             Polygon& operator = (const Polygon
             & obj) = delete;	// copy operator
             Polygon& operator = (Polygon&& obj) = delete;
+
+            bool isInside(const WorldPoint& pt) const;
+
+            inline float getWidth() const
+			{
+				return width_;
+			}
+			
+			inline float getHeight() const
+			{
+				return height_;
+			}
     };
 }
 

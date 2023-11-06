@@ -7,13 +7,16 @@
 #include "Polygon.h"
 #include "Rectangle.h"
 #include "Ellipse.h"
+#include "Missile.h"
 namespace earshooter
 {
 	class Ship : public ComplexGraphicObject, public AnimatedObject
 	{
 		private:
 		
-
+		protected:
+					
+				void updateAbsoluteBox_() const;
 		public:
 			Ship();
 			~Ship() = default;
@@ -24,6 +27,9 @@ namespace earshooter
 			Ship& operator = (const Ship& obj) = delete;	// copy operator
 			Ship& operator = (Ship&& obj) = delete;			// move operator
 
+
+			std::shared_ptr<Missile> Fire();
+			void resetShip();
 	};
 }
 

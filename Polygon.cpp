@@ -32,6 +32,19 @@ Polygon::Polygon(float centerX, float centerY, float angle, float scaleX, float 
 		_green(green),
 		_blue(blue)
 {
+	float maxX = vertexVector[0].first;
+	float maxY = vertexVector[0].second;
+	float minX = vertexVector[0].first;
+	float minY = vertexVector[0].second;
+	for(pair<float,float> coord : vertexVector){
+		maxX = max(coord.first,maxX);
+		maxY = max(coord.second,maxY);
+		minX = min(coord.first,minX);
+		minY = min(coord.second,minY);
+	}
+
+	// cout << minX << " | " <<  maxX << " | " <<  minY << " | " <<  maxY << endl;
+	setRelativeBoundingBox_(minX, maxX, minY, minY);
 }
 //Implementiation of different shapes like lines. 
 // Polygon::Polygon(float centerX, float centerY, float angle, float scaleX, float scaleY,std::vector<std::pair<float,float>> vertexVector,
@@ -51,7 +64,7 @@ Polygon::~Polygon()
 
 }
 
-void Polygon::draw() const
+void Polygon::draw_() const
 {
 	//	save the current coordinate system (origin, axes, scale)
 	glPushMatrix();
@@ -78,19 +91,39 @@ void Polygon::draw() const
 }
 
 
-bool isInside(const WorldPoint& pt ) {
-	return false;
-}	
-// 	for (int j=0; j<((_vertexVector.size())-1); j++) {
-//         //Math to consider the four corners of the box. 
-//         std::vector<std::pair<float,float>> tempVector;
-//         tempVector.push_back({_vertexVector[j].first-_})
-//         glBegin(GL_POLYGON);
-//                 for (int k=0; k<4; k++)
-//                     glVertex2f(tempVector[k].first,
-//                             tempVector[k].second);
-//         glEnd();
-//     };
-// 	//	restore the original coordinate system (origin, axes, scale)
-// 	glPopMatrix();
-// }
+bool Polygon::isInside(const WorldPoint& pt) const
+{
+	float dx = pt.x - getX(), dy = pt.y - getY();
+	if (getAngle() != 0.f)
+	{
+		float ca = cosf(getAngle()), sa = sinf(getAngle());
+		float rdx = ca * dx + sa*dy;
+		float rdy = -sa *dx + ca*dy;
+		// std::cout << "Inside Polygon with Angle isInside: " << ((rdx >= -width_/2 ) && (rdx <= width_/2 ) && (rdy >= -height_/2 ) && (rdy <= +height_/2 )) << " | " << rdx << "," << rdy << " | " << width_ << "," << height_ << " | " << ca << "," << sa << " | " << pt.x << "," <<  pt.y << std::endl;
+	
+		return (rdx >= -width_/2 ) && (rdx <= width_/2 ) &&
+			   (rdy >= -height_/2 ) && (rdy <= +height_/2 );
+	
+	}
+	else
+		// std::cout << "Inside Polygon without Angle isInside: " << ((pt.x >= getX() - width_/2 ) && (pt.x <= getX() + width_/2 ) && (pt.y >= getY() - height_/2 ) && (pt.y <= getY() + height_/2 )) << " | " << getX() << "," << getY() << " | " << width_ << "," << height_ << " | " << pt.x << "," <<  pt.y << std::endl;
+		return (pt.x >= getX() - width_/2 ) && (pt.x <= getX() + width_/2 ) &&
+			   (pt.y >= getY() - height_/2 ) && (pt.y <= getY() + height_/2 );
+}
+
+void Polygon::updateAbsoluteBox_() const
+{
+	//	I could probably do it smarter/faster if I took the time to
+	//	think about it, but I am being lazy :-)
+	float ca = cosf(getAngleRad()), sa = sinf(getAngleRad());
+	float x1 = +0.5f * (ca*width_ + sa*height_),
+		  x2 = +0.5f * (ca*width_ - sa*height_),
+		  x3 = -x1,
+		  x4 = -x2;
+	float y1 = +0.5f * (sa*width_ + ca*height_),
+		  y2 = +0.5f * (sa*width_ - ca*height_),
+		  y3 = -y1,
+		  y4 = -y2;
+	setAbsoluteBoundingBox_(min(min(min(x1, x2), x3), x4), max(max(max(x1, x2), x3), x4),
+							min(min(min(y1, y2), y3), y4), max(max(max(y1, y2), y3), y4));
+}

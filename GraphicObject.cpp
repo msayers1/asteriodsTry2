@@ -122,10 +122,61 @@ void GraphicObject::setRelativeBoundingBoxColor_(ColorIndex color) const
 
 const std::shared_ptr<BoundingBox> GraphicObject::getAbsoluteBox() const
 {
-	if (absoluteBox_ == nullptr)
+	if (absoluteBox_ == nullptr){
+		// float selfXmin = relativeBox_->getXmin() + getX();
+		// float selfXmax = relativeBox_->getXmax() + getX();
+		// float selfYmin = relativeBox_->getYmin() + getY();
+		// float selfYmax = relativeBox_->getYmax() + getY();
+		// absoluteBox_ = make_shared<BoundingBox>(selfXmin,selfXmax,selfYmin,selfYmax);
 		absoluteBox_ = make_shared<BoundingBox>();
+	}
+	
+		
 		
 	updateAbsoluteBox_();
 
 	return absoluteBox_;
+}
+
+void GraphicObject::updateAbsoluteBox_() const
+{
+	float selfXmin = relativeBox_->getXmin() + getX();
+	float selfXmax = relativeBox_->getXmax() + getX();
+	float selfYmin = relativeBox_->getYmin() + getY();
+	float selfYmax = relativeBox_->getYmax() + getY();
+	float width = selfXmax - selfXmin;
+	float height = selfYmax - selfYmin;
+	float ca = cosf(getAngleRad()), sa = sinf(getAngleRad());
+	float x1 = +0.5f * (ca*width + sa*height),
+		  x2 = +0.5f * (ca*width - sa*height),
+		  x3 = -x1,
+		  x4 = -x2;
+	float y1 = +0.5f * (sa*width + ca*height),
+		  y2 = +0.5f * (sa*width - ca*height),
+		  y3 = -y1,
+		  y4 = -y2;
+	// cout << "Update" << " | " << getX() << " | " << getY() << " | " << x1 << " | " << x2 << " | " << x3 << " | " << x4 << " | " << y1 << " | " << y2 << " | " << y3 << " | " << y4 << endl;
+
+	setAbsoluteBoundingBox_(min(min(min(x1, x2), x3), x4), max(max(max(x1, x2), x3), x4),
+							min(min(min(y1, y2), y3), y4), max(max(max(y1, y2), y3), y4));
+}
+
+bool GraphicObject::collision(std::shared_ptr<BoundingBox> otherBB){
+	// cout << "Check: " << (absoluteBox_->getYmax() < otherBB->getYmin() || absoluteBox_->getYmin() < otherBB->getYmax()) << " | " << getX() << " | " << getY() << " | " << absoluteBox_->getYmax() << " | " << otherBB->getYmin() << " | " << absoluteBox_->getYmin() << " | " << otherBB->getYmax() << " | " <<  (absoluteBox_->getXmax() < otherBB->getXmin() || absoluteBox_->getXmin() < otherBB->getXmax()) << " | " <<  absoluteBox_->getXmax() << " | " <<  otherBB->getXmin() << " | " <<  absoluteBox_->getXmin() << " | " <<  otherBB->getXmax() << endl;
+	// WorldPoint selfUL = (*relativeBox_).getCornerUL(); // max y min x
+	// WorldPoint selfLR = (*relativeBox_).getCornerLR(); // min y max x
+	// WorldPoint otherUL = (*otherBB).getCornerUL();
+	// // WorldPoint otherLR = (*otherBB).getCornerLR();
+	// float selfXmin = relativeBox_->getXmin() + getX();
+	// float selfXmax = relativeBox_->getXmax() + getX();
+	// float selfYmin = relativeBox_->getYmin() + getY();
+	// float selfYmax = relativeBox_->getYmax() + getY();
+	updateAbsoluteBox_();
+	if(absoluteBox_->getYmax() < otherBB->getYmin() || absoluteBox_->getYmin() > otherBB->getYmax()){
+		return false;
+	}
+	if(absoluteBox_->getXmax() < otherBB->getXmin() || absoluteBox_->getXmin() > otherBB->getXmax()){
+		return false;
+	}
+	return true;
 }

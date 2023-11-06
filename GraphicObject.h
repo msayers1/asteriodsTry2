@@ -98,8 +98,7 @@ namespace earshooter
 			void setRelativeBoundingBoxColor_(ColorIndex color) const ;
 
 
-			virtual void updateAbsoluteBox_() const
-			{}
+			virtual void updateAbsoluteBox_() const;
 
 
 			/** The drawing function that subclasses must implement.
@@ -127,7 +126,10 @@ namespace earshooter
 			//	not virtual anymore
 			void draw() const;
 
-			
+			// Collision detection off relative Bounding box;
+			bool collision(std::shared_ptr<BoundingBox> otherBB);
+
+
 			virtual bool isInside(const WorldPoint& pt) const = 0;
 			
 			virtual const std::shared_ptr<BoundingBox> getRelativeBox() const
@@ -136,7 +138,7 @@ namespace earshooter
 			}
 			
 			virtual const std::shared_ptr<BoundingBox> getAbsoluteBox() const;
-			
+
 			static inline void drawAbsoluteBoxes(bool drawBoxes)
 			{
 				drawAbsoluteBoxes_ = drawBoxes;

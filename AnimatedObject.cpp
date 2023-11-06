@@ -38,7 +38,6 @@ void AnimatedObject::update(float dt)
 		setY(getY() + vy_*dt);
 	if (spin_ != 0.f)
 		setAngle(getAngle() + spin_*dt);
-		
 	//	Temporary stuff:  Freeze motion if the object's origin reaches the edges
 	//	of the world
 	if (getX() < World::X_MIN || getX() > World::X_MAX ||

@@ -94,6 +94,8 @@ namespace earshooter {
 		static std::random_device randDev;
 		static std::default_random_engine randEngine;
 		//
+		static std::uniform_real_distribution<double> wallDist;
+		static std::uniform_real_distribution<float> speedDist;
 		static std::uniform_real_distribution<float> wxDist;
 		static std::uniform_real_distribution<float> wyDist;
 		static std::uniform_real_distribution<float> objectScaleDist;
@@ -115,6 +117,18 @@ namespace earshooter {
 	WorldPoint pixelToWorld(const PixelPoint& pt);
 	PixelPoint worldToPixel(const WorldPoint& pt);
 	
+	inline int randomWall()
+	{
+		
+		return static_cast<int>(World::wallDist(World::randEngine));
+	}
+
+	inline float randomSpeed()
+	{
+		
+		return static_cast<float>(World::speedDist(World::randEngine));
+	}
+
 	inline WorldPoint randomWorldPoint()
 	{
 		return WorldPoint{ World::wxDist(World::randEngine),

@@ -15,15 +15,16 @@
 //		- 'm' toggles on/off mouse motion tracking (button pressed)
 //		- 'p' toggles on/off passive mouse motion tracking (no button pressed)
 //		- 'e' toggles on/off mouse exit/enter
-//		- 't' toggles on/off text overlay display
+//		- 's' toggles score on/off
+//		- 't' toggles on/off text 2nd line of overlay display
 //		- 'b' toggles on/off text background display
 //		- 'i' activates the input of a second text string
 //			(input from the terminal)
-//		- 'a' toggles on/off showing absolute bounding boxes
+//		- 'u' toggles on/off showing absolute bounding boxes
 //		- 'r' toggles on/off showing relative bounding boxes
 //
 //		- clicking the mouse anywhere in the window on mouse down will print out
-//			pixel location of the click, conversion in world coordinates, and
+//			pixel location of the click, convstd::shared_ptr<Ship> ersion in world coordinates, and
 //			conversion back to pixels (for verification); on mouse up
 //				o In creation mode, will create a random Rectangle or Ellipse,
 //					with random likelihood of being animated
@@ -37,6 +38,7 @@
 //  Created by Jean-Yves Hervé on 2023-10-04.
 //
 #include <iostream>
+#include <algorithm>
 #include <string>
 #include <vector>
 #include <list>
@@ -53,8 +55,8 @@
 #include "Rectangle.h"
 #include "Ship.h"
 #include "Missile.h"
-// #include "Face.h"
-// #include "SmilingFace.h"
+#include "Asteriod.h"
+#include "BoundingBox.h"
 // #include "AnimatedEllipse.h"
 // #include "AnimatedRectangle.h"
 
@@ -193,11 +195,12 @@ const FontSize fontSize = LARGE_FONT_SIZE;
 #endif
 //--------------------------------------
 
-int FroggerIndex = 1;
-
+// std::shared_ptr<Missile> missile;
+std::shared_ptr<Ship> ship;
 //Game Class
 Game newGame = Game();
-std::string frogStatus = "initializing";
+float minAsteriodVelocity = 2;
+float maxAsteriodVelocity = 10;
 
 time_t startTime = -1;
 int winWidth = 800,
@@ -205,6 +208,8 @@ int winWidth = 800,
 
 random_device World::randDev;
 default_random_engine World::randEngine(World::randDev());
+uniform_real_distribution<double> World::wallDist = uniform_real_distribution<double>(0, 3);
+uniform_real_distribution<float> World::speedDist = uniform_real_distribution<float>(2, 10);
 uniform_real_distribution<float> World::wxDist = uniform_real_distribution<float>(World::X_MIN, World::X_MAX);
 uniform_real_distribution<float> World::wyDist = uniform_real_distribution<float>(World::Y_MIN, World::Y_MAX);
 uniform_real_distribution<float> World::objectScaleDist = uniform_real_distribution<float>(World::WIDTH/20, World::WIDTH/10);
@@ -233,6 +238,7 @@ bool trackPassiveMousePointer = false;
 bool pointerInWindow = false;
 GLint lastX = -1, lastY = -1;
 
+bool scoreDisplay = true;
 bool displayText = false;
 bool displayBgnd = false;
 bool displayAbsoluteBoxes = false;
@@ -244,7 +250,8 @@ const GLfloat* bgndColor = BGND_COLOR[0];
 // list<shared_ptr<GraphicObject> > ObjectList;
 // list<shared_ptr<AnimatedObject> > animatedObjectList;
 std::vector<std::pair<shared_ptr<ComplexGraphicObject>,shared_ptr<AnimatedObject>>> ObjectList;
-
+list<shared_ptr<Asteriod>> AsteriodList;
+list<shared_ptr<Missile>> MissileList;
 
 WorldType World::worldType = WorldType::TORUS_WORLD;
 // WorldType World::worldType = WorldType::CYLINDER_WORLD;
@@ -291,6 +298,7 @@ void myDisplayFunc(void)
 		if (obj.first != nullptr)
 			obj.first->draw();
 	}
+	ship->draw();
 
 	if (World::worldType == WorldType::CYLINDER_WORLD || World::worldType == WorldType::TORUS_WORLD)
 	{
@@ -299,13 +307,19 @@ void myDisplayFunc(void)
 			{
 				if (obj.first != nullptr)
 					obj.first->draw();
+			
 			}
+		ship->draw();
+
 		glTranslatef(2*World::WIDTH, 0, 0);
 		for (auto obj : ObjectList)
 			{
 				if (obj.first != nullptr)
 					obj.first->draw();
+
 			}
+		ship->draw();
+
 	}
 	//Torus world to get the 3 above and 3 below. 
 	if (World::worldType == WorldType::TORUS_WORLD)
@@ -316,18 +330,24 @@ void myDisplayFunc(void)
 				if (obj.first != nullptr)
 					obj.first->draw();
 			}
+		ship->draw();
+
 		glTranslatef(-World::WIDTH, 0, 0);
 		for (auto obj : ObjectList)
 			{
 				if (obj.first != nullptr)
 					obj.first->draw();
 			}
+		ship->draw();
+
 		glTranslatef(-World::WIDTH, 0, 0);
 		for (auto obj : ObjectList)
 			{
 				if (obj.first != nullptr)
 					obj.first->draw();
 			}
+		ship->draw();
+
 
 		glTranslatef(0, 2*World::HEIGHT, 0);
 		for (auto obj : ObjectList)
@@ -335,19 +355,23 @@ void myDisplayFunc(void)
 				if (obj.first != nullptr)
 					obj.first->draw();
 			}
+		ship->draw();
+
 		glTranslatef(World::WIDTH, 0, 0);
 		for (auto obj : ObjectList)
 			{
 				if (obj.first != nullptr)
 					obj.first->draw();
 			}
+		ship->draw();
+
 		glTranslatef(World::WIDTH, 0, 0);
 		for (auto obj : ObjectList)
 			{
 				if (obj.first != nullptr)
 					obj.first->draw();
 			}
-	
+		ship->draw();	
 	}
 
 	glPopMatrix();
@@ -368,20 +392,25 @@ void myDisplayFunc(void)
 	//---------------------------------
 	//	We are back at the world's origin (by the glPopMatrix() just above), in world coordinates.
 	//	So we must undo the scaling to be back in pixels, which how text is drawn for now.
-	if (displayText)
+	if (true)
 	{
 	//	First, translate to the upper-left corner
 		glTranslatef(World::X_MIN, World::Y_MAX, 0.f);
 		
 		//	Then reverse the scaling: back in pixels, making sure that y now points down
+		// glScalef(World::drawInPixelScale, -World::drawInPixelScale, 1.f);
 		glScalef(World::drawInPixelScale, -World::drawInPixelScale, 1.f);
 
+
 		char statusLine[256];
-		
+		char a2ndstatusLine[256];
+
 		WorldPoint mouse = pixelToWorld(lastX, lastY);
-		sprintf(statusLine, "Runtime: %d s | Mouse last seen at (%f, %f) |    Score: %f   |  Number of Lives: %f | structural Integrity: %f |  ",
+		sprintf(a2ndstatusLine, "Runtime: %d s | Mouse last seen at (%f, %f)  ",
 								static_cast<int>(time(nullptr)-startTime),
-								mouse.x, mouse.y,
+								mouse.x, mouse.y);
+		sprintf(statusLine, "GameStatus: %d | Score: %f   |  Number of Lives: %f | structural Integrity: %f |  ",
+								newGame.getGameStatus(),
 								newGame.getScore(), 
 								newGame.getLives(),
 								newGame.getShipStructuralIntegrity());
@@ -389,10 +418,14 @@ void myDisplayFunc(void)
 		// 						static_cast<int>(time(nullptr)-startTime),
 		// 						static_cast<int>(ObjectList.size()),
 		// 						lastX, lastY);
-		// displayTextualInfo(statusLine, 0);		//	first row
+		if(scoreDisplay)
+			displayTextualInfo(statusLine, 0);		//	first row
+		if(displayText){
+			displayTextualInfo(a2ndstatusLine, 1);		//	second row
+		}
 
 		if (stringLine != "")
-		displayTextualInfo(stringLine, 1);		//	second row
+		displayTextualInfo(stringLine, 2);		//	third row
 	}
 
 	//	We were drawing into the back buffer, now it should be brought
@@ -571,7 +604,7 @@ void myMouseHandler(int button, int state, int ix, int iy)
 				// 	//	Rectangle
 				// 	//----------------
 				// 	else
-				// 	{
+				// 	{ship
 				// 		//	create a randomly-colored ellipse centered at the click location
 				// 		WorldPoint clickPt = pixelToWorld(ix, iy);
 				// 		if (isAnimated())
@@ -659,7 +692,7 @@ void myKeyHandler(unsigned char c, int x, int y)
 	// silence warning
 	(void) x;
 	(void) y;
-	
+	std::shared_ptr<Missile> missile;
 	switch (c)
 	{
 		case 'q':
@@ -686,35 +719,39 @@ void myKeyHandler(unsigned char c, int x, int y)
 			
 		case 't':
 			displayText = !displayText;
+			break;	
+		case 's':
+			scoreDisplay = !scoreDisplay;
+			break;
 			
+
 		case 'b':
 			displayBgnd = !displayBgnd;
 			break;
 
 			// Left Spin
-		if (c == 'a'){
-			// std::cout << "I pressed a and my spin is" << ObjectList[0].second->getSpin() << std::endl;
-			ObjectList[0].second->setSpin((ObjectList[0].second->getSpin() + 1));
-			// std::cout << "After I pressed a and my spin is" << ObjectList[0].second->getSpin() << std::endl;
-			
-		}
+		case 'a':
+			// std::cout << "I pressed a and my spin is" << ship->getSpin() << std::endl;
+			ship->setSpin((ship->getSpin() + 1));
+			// std::cout << "After I pressed a and my spin is" << ship->getSpin() << std::endl;
+			break;
 		// Right Spin
-		if (c == 'd')
-			ObjectList[0].second->setSpin((ObjectList[0].second->getSpin() - 1));
-		
+		case 'd':
+			ship->setSpin((ship->getSpin() - 1));
+			break;
 		// Thrust
-		if (c == 'w')
-			ObjectList[0].second->setVelocityWithGraphicObjectAngle((ObjectList[0].second->getVelocity() + .1));
-		
+		case 'w':
+			ship->setVelocityWithGraphicObjectAngle((ship->getVelocity() + .1));
+			break;
 		// Fire
-		if (c == ' '){
-			cout << "fire!" << ObjectList[0].first->getX()  << " | " << ObjectList[0].first->getY()  << ObjectList[0].first->getAngle() << std::endl;
-			std::shared_ptr<Missile> missile = make_shared<Missile>(ObjectList[0].first->getX(), ObjectList[0].first->getY(), (ObjectList[0].second->getVelocity() + 3), (ObjectList[0].second->getAngle()+90));
-			// std::shared_ptr<Missile> missile = make_shared<Missile>((ObjectList[0].first->getAngle()+90));
+		case ' ':
+			// cout << "fire!" << ship->getX()  << " | " << ship->getY()  << ship->getAngle() << std::endl;
+			missile = ship->Fire();
+			// std::shared_ptr<Missile> missile = make_shared<Missile>((ship->getAngle()));
 			//std::shared_ptr<Missile> missile = make_shared<Missile>();
 			ObjectList.push_back(make_pair(missile,missile));
-		}
-			
+			MissileList.push_back(missile);
+			break;
 
 
 		// case 'c':
@@ -723,9 +760,10 @@ void myKeyHandler(unsigned char c, int x, int y)
 		// 	else
 		// 		appMode = AppMode::CREATION_MODE;
 		// 	break;
-		if (c == 'f')
+		case 'f':
 			World::showReferenceFrames = !World::showReferenceFrames;
-		case 'a':
+			break;
+		case 'u':
 			displayAbsoluteBoxes = !displayAbsoluteBoxes;
 			if (displayAbsoluteBoxes)
 				displayRelativeBoxes = false;
@@ -737,6 +775,13 @@ void myKeyHandler(unsigned char c, int x, int y)
 			if (displayRelativeBoxes)
 				displayAbsoluteBoxes = false;
 			GraphicObject::drawRelativeBoxes(displayRelativeBoxes);
+			break;
+		case 'n':
+			(*ship).resetShip();
+			newGame.resetGame();
+			ObjectList.clear();
+			AsteriodList.clear();
+			MissileList.clear();
 			break;
 			
 		default:
@@ -753,15 +798,15 @@ void mySpecialKeyHandler(int key, int x, int y)
 	// key code, an int rather than an unsigned char).
 	switch(key){
 		case GLUT_KEY_UP:
-			ObjectList[0].second->setVelocityWithGraphicObjectAngle((ObjectList[0].second->getVelocity() + .1));
+			ship->setVelocityWithGraphicObjectAngle((ship->getVelocity() + .1));
 			// cout << "Up" << endl;
 			break;
 		case GLUT_KEY_LEFT:
-			ObjectList[0].second->setSpin((ObjectList[0].second->getSpin() - 1));
+			ship->setSpin((ship->getSpin() + 1));
 			// cout << "Left" << endl;			
 			break;
 		case GLUT_KEY_RIGHT:
-			ObjectList[0].second->setSpin((ObjectList[0].second->getSpin() + 1));
+			ship->setSpin((ship->getSpin() - 1));
 			// cout << "Right" << endl;
 			break; 
 	}
@@ -770,26 +815,151 @@ void mySpecialKeyHandler(int key, int x, int y)
 void myTimerFunc(int value)
 {
 	static int frameIndex=0;
+	
+
 	static chrono::high_resolution_clock::time_point lastTime = chrono::high_resolution_clock::now();
 
 	//	"re-prime the timer"
 	glutTimerFunc(1, myTimerFunc, value);
 
+		
 	//	 do something (e.g. update the state of animated objects)
 	chrono::high_resolution_clock::time_point currentTime = chrono::high_resolution_clock::now();
 	float dt = chrono::duration_cast<chrono::duration<float> >(currentTime - lastTime).count();
-	for (auto obj : ObjectList)
-	{
-		if (obj.second != nullptr)
-			obj.second->update(dt);
-	}
+	if(newGame.getGameStatus())
+	{	
+		for (auto obj : ObjectList)
+		{
+			if (obj.second != nullptr)
+				obj.second->update(dt);
+		}
+		ship->update(dt);
+
+		for (auto ast : AsteriodList)
+		{
+			//Check for ship collision
+		}
+		bool hitStatus = false;
+		if (frameIndex % 100 == 0)
+		{
+			auto ast = AsteriodList.begin();
+			auto mis = MissileList.begin();
+			while(ast != AsteriodList.end())
+			{
+				std::shared_ptr<BoundingBox> asteriodBoundingBox = (*ast)->getAbsoluteBox();
+				if(MissileList.size() > 0)
+				{
+					while(mis != MissileList.end())
+					{
+						if((*ast)->collision(asteriodBoundingBox)){
+							// std::cout << "Hit" << std::endl;
+							newGame.increaseScore(100);
+							auto needle = std::remove_if(ObjectList.begin(), ObjectList.end(), [&](const std::pair<std::shared_ptr<ComplexGraphicObject>, std::shared_ptr<AnimatedObject>>& pair) {
+							return (pair.first == (*mis));
+							});
+							ObjectList.erase(needle);
+							MissileList.erase(mis);
+							hitStatus = true;
+							break;
+						}else{
+							if((*mis)->checkFuel()){
+								// std::cout << "Hit" << std::endl;
+								auto needle = std::remove_if(ObjectList.begin(), ObjectList.end(), [&](const std::pair<std::shared_ptr<ComplexGraphicObject>, std::shared_ptr<AnimatedObject>>& pair) {
+								return (pair.first == (*mis));
+								});
+								ObjectList.erase(needle);
+								MissileList.erase(mis);
+								break;
+							}
+							++mis;
+						}
+					}
+					if(hitStatus){
+						auto needle = std::remove_if(ObjectList.begin(), ObjectList.end(), [&](const std::pair<std::shared_ptr<ComplexGraphicObject>, std::shared_ptr<AnimatedObject>>& pair) {
+						return (pair.first == (*ast));
+						});
+						ObjectList.erase(needle);
+						AsteriodList.erase(ast);
+						break;
+					}
+				}
+
+				// cout << "Checking for collision" << endl;
+				if((*ast)->collision(ship->getAbsoluteBox())){
+					// std::cout << "Collision" << std::endl;
+					newGame.setShipStructuralIntegrity(2);
+					float angle = (*ast)->getAngle();
+					float reverseAngle;
+					if (angle > 180)
+						reverseAngle = angle - 180;
+					if (angle <= 180)
+						reverseAngle = angle + 180;
+					(*ast)->setVelocity((*ast)->getVelocity(), reverseAngle);
+				}
+			
+				++ast;
+			}
+		}
+		lastTime = currentTime;
+		// if (frameIndex % 100 == 0)
+		// {
+		// 	if(AsteriodList.size() > 0){
+		// 		ast = AsteriodList.begin();
+
+		// 		while(ast != AsteriodList.end())
+		// 		{
+		// 			if((*ast)->collision(ship->getAbsoluteBox())){
+		// 				std::cout << "Collision" << std::endl;
+		// 				newGame.setShipStructuralIntegrity(2);
+		// 				float angle = (*ast)->getAngle();
+		// 				float reverseAngle;
+		// 				if (angle > 180)
+		// 					reverseAngle = angle - 180;
+		// 				if (angle <= 180)
+		// 					reverseAngle = angle + 180;
+		// 				(*ast)->setVelocity((*ast)->getVelocity(), reverseAngle);
+		// 			}
+		// 		}
+		// 	}
+		// }
+
+		// return WorldPoint{ World::wxDist(World::randEngine),
+		// 					   World::wyDist(World::randEngine)};
+		if(frameIndex % 3000 == 0){
+			int wall = randomWall();
+			float ranVelocity = randomSpeed();
+			float ranAngle = randomAngleDeg();
+			std::shared_ptr<Asteriod> bob;
+			switch(wall){
+				case 0:
+					bob = make_shared<Asteriod>( World::wxDist(World::randEngine), World::Y_MAX, ranVelocity, ranAngle);
+					ObjectList.push_back(make_pair(bob,bob));
+					AsteriodList.push_back(bob);
+					break;
+				case 1:
+					bob = make_shared<Asteriod>( World::X_MAX, World::wyDist(World::randEngine), ranVelocity, ranAngle);
+					ObjectList.push_back(make_pair(bob,bob));
+					AsteriodList.push_back(bob);
+					break;
+				case 2:
+					bob = make_shared<Asteriod>( World::wxDist(World::randEngine), World::Y_MIN, ranVelocity, ranAngle);
+					ObjectList.push_back(make_pair(bob,bob));
+					AsteriodList.push_back(bob);
+					break;
+				case 3:
+					bob = make_shared<Asteriod>( World::X_MIN, World::wyDist(World::randEngine), ranVelocity, ranAngle);
+					ObjectList.push_back(make_pair(bob,bob));
+					AsteriodList.push_back(bob);
+					break;			
+			}
+		}
+	}	//	And finally I perform the rendering
 	
-	lastTime = currentTime;
-	//	And finally I perform the rendering
 	if (frameIndex++ % 10 == 0)
 	{
 		glutPostRedisplay();
 	}
+
 }
 
 //--------------------------------------
@@ -946,7 +1116,7 @@ void printMatrix(const GLfloat* m) {
 void setupShip()
 {
 	// printf("setupShip\n");
-	std::shared_ptr<Ship> ship = make_shared<Ship>();
+	ship = make_shared<Ship>();
 	ObjectList.push_back(make_pair(ship, ship));
 }
 
